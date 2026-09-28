@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block title %}评估报告 · 机器视觉实践系统{% endblock %}
+{% block content %}
+<style>
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+.kpi { padding:18px; border-radius:14px; color:#fff; position:relative; overflow:hidden; }
+.kpi .k-label { font-size:13px; opacity:.9; }
+.kpi .k-value { font-size:26px; font-weight:700; margin-top:6px; }
+.kpi .k-sub { font-size:12px; opacity:.85; margin-top:4px; }
+.kpi.c1 { background:linear-gradient(135deg,#5f3dc4,#845ef7); }
+.kpi.c2 { background:linear-gradient(135deg,#7048e8,#9775fa); }
+.kpi.c3 { background:linear-gradient(135deg,#7c3aed,#a78bfa); }
+.kpi.c4 { background:linear-gradient(135deg,#6741d9,#845ef7); }
+.kpi.c5 { background:linear-gradient(135deg,#5f3dc2,#748ffc); }
+.chart-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:18px; }
+@media (max-width:960px){ .chart-grid { grid-template-columns:1fr; } }
+@media (max-width:1100px){ .dual-grid { grid-template-columns:1fr; } }
+.chart-box { position:relative; height:340px; }
+table.cm { width:auto; border-collapse:collapse; margin:0 auto; font-size:12px; }
+table.cm th { padding:6px 8px 6px 0; color:#5f3dc4; font-weight:600; font-size:12px; white-space:nowrap; text-align:right; }
+table.cm thead th { padding:8px 6px 6px; text-align:center; }
+table.cm td { width:52px; min-width:52px; padding:0; height:52px; text-align:center; border:1px solid #f1f3f5; font-size:12px; }
+.cm-wrap { overflow-x:auto; padding-bottom:6px; }
+.legend { display:flex; gap:18px; justify-content:center; font-size:12px; color:#666; margin:18px 0 4px; flex-wrap:wrap; }
+.legend i { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
+.dual-grid { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:18px; margin-top:18px; align-items:start; }
+.dual-grid > .card { margin:0; }
+.sub-block { margin-top:16px; padding-top:14px; border-top:1px solid #f1f3f5; }
+.sub-title { font-size:14px; font-weight:700; color:#5f3dc4; margin-bottom:8px; }
+.check-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed #eee; font-size:14px; flex-wrap:wrap; row-gap:4px; }
+.check-row:last-child { border-bottom:none; }
+.check-val { margin-left:auto; }
+.badge-pass { background:#ebfbee; color:#2b8a3e; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+.badge-fail { background:#fff5f5; color:#c92a2a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+.grade-box { text-align:center; padding:20px; border-radius:16px; background:linear-gradient(135deg,#5f3dc4,#845ef7); color:#fff; }
+.grade-box .g-grade { font-size:30px; font-weight:800; margin:6px 0; }
+.verdict-text { font-size:15px; line-height:1.8; }
+.find-list { margin:6px 0 0; padding-left:20px; font-size:14px; line-height:1.9; }
+.find-list li b { color:#5f3dc4; }
+</style>
+
+<h1 class="page-title">评估报告</h1>
+<p class="page-sub">模型在 10000 幅测试图像上的完整评估：总体指标、每类精确率/召回率/F1、混淆矩阵与自动评级</p>
+
+<div class="card">
+  <div class="card-title">选择实验</div>
+  <select id="expSel" style="max-width:420px">
+    <option value="cifar10_resnet18">CIFAR-10 · ResNet18（基线）</option>
+    <option value="cifar10_seresnet18">CIFAR-10 · SEResNet18（SE 注意力）</option>
+    <option value="cifar10_mobilenet">CIFAR-10 · MobileNet（轻量）</option>
+  </select>
+</div>
+
+<div id="reportArea" hidden>
+  <!-- KPI -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- 图表 -->
+  <div class="chart-grid" style="margin-top:18px">
+    <div class="card">
+      <div class="card-title">每类 Precision / Recall / F1</div>
+      <div class="chart-box"><canvas id="chartPR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">各类 F1 雷达图（类别均衡性）</div>
+      <div class="chart-box"><canvas id="chartRadar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 混淆矩阵 + 综合评估结论：左右排版 -->
+  <div class="dual-grid">
+    <div class="card">
+      <div class="card-title">混淆矩阵热力图</div>
+      <div class="cm-wrap"><table class="cm" id="cmTable"></table></div>
+      <div class="legend">
+        <span><i style="background:#5f3dc4"></i>正确识别（越深越好）</span>
+        <span><i style="background:#fa5252"></i>严重混淆</span>
+        <span><i style="background:#ffe3e3;border:1px solid #ffc9c9"></i>少量误判</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">模型综合评估结论</div>
+      <div id="conclusion"></div>
+    </div>
+  </div>
+
+  <!-- 原始文本 -->
+  <div class="card" style="margin-top:18px">
+    <details>
+      <summary class="card-title" style="cursor:pointer">查看 metrics.txt 原始数据</summary>
+      <pre class="metrics" id="metricsText" style="margin-top:12px"></pre>
+    </details>
+  </div>
+</div>
+
+<div class="card" id="failCard">
+  <div id="hint" style="font-size:14px;color:#868e96">加载中...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let chartPR = null, chartRadar = null;
+const PURPLE = '#5f3dc4', PURPLE2 = '#845ef7', PURPLE3 = '#b197fc';
+
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+// ------------------------------------------------------------ KPI 卡片
+function renderKPI(s){
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = '';
+  const items = [
+    ['c1','Top-1 准确率', s.top1.toFixed(2)+'%', '课程要求 ≥ 90%'],
+    ['c2','Top-5 准确率', s.top5.toFixed(2)+'%', '正确答案基本在前5'],
+    ['c3','宏平均 F1', s.f1.toFixed(4), '精确率与召回率调和'],
+    ['c4','单图推理时延', s.infer_ms.toFixed(2)+' ms', '要求 < 1000 ms'],
+    ['c5','平均每 epoch', s.epoch_s.toFixed(1)+' s', 'CPU 训练成本'],
+  ];
+  items.forEach(([c,label,val,sub])=>{
+    const k = el('div','kpi '+c);
+    k.append(el('div','k-label',label), el('div','k-value',val), el('div','k-sub',sub));
+    grid.appendChild(k);
+  });
+}
+
+// ------------------------------------------------------------ P/R/F1 柱状图
+function renderPRChart(perClass){
+  const labels = perClass.map(c=>c.class);
+  const mk = (name,key,color)=>({
+    label:name, data:perClass.map(c=>c[key]*100),
+    backgroundColor:color, borderRadius:4,
+  });
+  if (chartPR) chartPR.destroy();
+  chartPR = new Chart(document.getElementById('chartPR'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      mk('Precision %','precision','rgba(95,61,196,.85)'),
+      mk('Recall %','recall','rgba(132,94,247,.75)'),
+      mk('F1 %','f1','rgba(177,151,252,.9)'),
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'top'} },
+      scales:{ y:{ beginAtZero:false, min:70, max:100, ticks:{callback:v=>v+'%'} } },
+    },
+  });
+}
+
+// ------------------------------------------------------------ F1 雷达图
+function renderRadar(perClass){
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(document.getElementById('chartRadar'), {
+    type:'radar',
+    data:{
+      labels: perClass.map(c=>c.class),
+      datasets:[{
+        label:'F1',
+        data: perClass.map(c=>c.f1),
+        backgroundColor:'rgba(132,94,247,.25)',
+        borderColor:PURPLE, pointBackgroundColor:PURPLE, borderWidth:2,
+      }],
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ r:{ min:0.7, max:1, ticks:{stepSize:0.1} } },
+    },
+  });
+}
+
+// ------------------------------------------------------------ 混淆矩阵热力图
+function renderHeatmap(classes, m){
+  const tbl = document.getElementById('cmTable');
+  tbl.innerHTML = '';
+  let maxOff = 0;
+  m.forEach((row,i)=>row.forEach((v,j)=>{ if(i!==j) maxOff = Math.max(maxOff,v); }));
+
+  // 表头
+  const thead = el('thead');
+  const hr = el('tr');
+  hr.appendChild(el('th','','真实\\预测'));
+  classes.forEach(c=>hr.appendChild(el('th','',c)));
+  thead.appendChild(hr);
+  tbl.appendChild(thead);
+
+  const tbody = el('tbody');
+  m.forEach((row,i)=>{
+    const tr = el('tr');
+    tr.appendChild(el('th','',classes[i]));
+    row.forEach((v,j)=>{
+      const td = el('td');
+      let bg, fg='#333';
+      if (i===j){
+        const a = 0.25 + 0.7*(v/1000);
+        bg = `rgba(95,61,196,${a.toFixed(2)})`;
+        if (v/1000 > 0.55) fg = '#fff';
+      } else if (v > 0){
+        const a = maxOff ? v/maxOff : 0;
+        bg = a > 0.55 ? '#fa5252'
+           : a > 0.25 ? '#ff8787'
+           : a > 0.08 ? '#ffc9c9' : '#ffe3e3';
+        if (a > 0.55) fg = '#fff';
+      } else { bg = '#fff'; }
+      td.style.background = bg;
+      td.style.color = fg;
+      td.textContent = v;
+      td.title = `真实 ${classes[i]} → 预测 ${classes[j]}：${v} 张`;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+}
+
+// ------------------------------------------------------------ 综合评估
+function renderConclusion(data){
+  const s = data.summary, pc = data.per_class, cm = data.confusion;
+  const checks = [
+    ['Top-1 准确率 ≥ 90%', s.top1 >= 90, s.top1.toFixed(2)+'%'],
+    ['Top-5 准确率 ≥ 90%', s.top5 >= 90, s.top5.toFixed(2)+'%'],
+    ['宏平均 F1 ≥ 0.60', s.f1 >= 0.60, s.f1.toFixed(4)],
+    ['单图推理时延 < 1000 ms', s.infer_ms < 1000, s.infer_ms.toFixed(2)+' ms'],
+  ];
+  const allPass = checks.every(c=>c[1]);
+
+  const f1s = pc.map(c=>c.f1);
+  const mean = f1s.reduce((a,b)=>a+b,0)/f1s.length;
+  const std = Math.sqrt(f1s.reduce((a,b)=>a+(b-mean)**2,0)/f1s.length);
+  const best = pc.reduce((a,b)=>b.f1>a.f1?b:a);
+  const worst = pc.reduce((a,b)=>b.f1<a.f1?b:a);
+  const balanced = std < 0.05;
+
+  // 评级
+  let grade;
+  if (allPass && s.top1>=94 && balanced) grade = '优秀 · A';
+  else if (allPass && s.top1>=90) grade = '优秀 · A-';
+  else if (allPass) grade = '良好 · B';
+  else grade = '合格 · C';
+
+  // 最严重的混淆对
+  const pairs = [];
+  cm.forEach((row,i)=>row.forEach((v,j)=>{ if(i!==j && v>0) pairs.push({i,j,v}); }));
+  pairs.sort((a,b)=>b.v-a.v);
+
+  const box = document.getElementById('conclusion');
+  box.innerHTML = '';
+
+  const gb = el('div','grade-box');
+  gb.appendChild(el('div',undefined,'综合评级'));
+  gb.appendChild(el('div','g-grade',grade));
+  gb.appendChild(el('div',undefined, allPass
+    ? '课程全部硬性指标达成，模型表现优秀，可用于在线推理。'
+    : '部分指标未达成，建议参考下方改进建议继续优化。'));
+  box.appendChild(gb);
+
+  // 达标检查
+  const checkCard = el('div','sub-block');
+  checkCard.appendChild(el('div','sub-title','指标达标检查'));
+  checks.forEach(([name,pass,val])=>{
+    const row = el('div','check-row');
+    row.appendChild(el('span',undefined, pass?'✅':'⚠️'));
+    row.appendChild(el('span',undefined,name));
+    const valSpan = el('span','check-val',`实际值：<b>${val}</b>`);
+    row.appendChild(valSpan);
+    row.appendChild(el('span', pass?'badge-pass':'badge-fail', pass?'达标':'未达标'));
+    checkCard.appendChild(row);
+  });
+  box.appendChild(checkCard);
+
+  // 优点与不足
+  const findCard = el('div','sub-block');
+  findCard.appendChild(el('div','sub-title','优点、不足与改进方向'));
+
+  const pros = [
+    `整体 Top-1 <b>${s.top1.toFixed(2)}%</b>、Top-5 <b>${s.top5.toFixed(2)}%</b>，识别准确且稳定。`,
+    `表现最好的类别是 <b>${best.class}</b>（F1=${best.f1.toFixed(4)}）。`,
+    balanced
+      ? `各类 F1 标准差仅 ${std.toFixed(4)}，<b>类别间高度均衡</b>，无明显偏科。`
+      : `各类 F1 标准差为 ${std.toFixed(4)}，存在一定类别差异。`,
+    `单图推理 <b>${s.infer_ms.toFixed(2)} ms</b>，远低于 1 秒要求，满足实时性。`,
+  ];
+  const cons = [
+    `最薄弱类别为 <b>${worst.class}</b>（F1=${worst.f1.toFixed(4)}），是后续优化重点。`,
+    pairs[0] ? `最主要的混淆发生在 <b>${pc[pairs[0].i].class} → ${pc[pairs[0].j].class}</b>（${pairs[0].v} 张），两类外观相近。` : null,
+  ].filter(Boolean);
+  const advice = [
+    '对薄弱类别增加数据增强强度（更强的裁剪、色彩抖动）或补充该类样本。',
+    '可尝试更长训练 + 更精细的学习率衰减，或换用更强骨干网络。',
+    '断点续训时同时恢复优化器状态，避免重启后的震荡期。',
+  ];
+
+  const ul1 = el('ul','find-list');
+  pros.forEach(t=>ul1.appendChild(el('li','',`<b>优点：</b>${t}`)));
+  cons.forEach(t=>ul1.appendChild(el('li','',`<b>不足：</b>${t}`)));
+  advice.forEach(t=>ul1.appendChild(el('li','',`<b>建议：</b>${t}`)));
+  findCard.appendChild(ul1);
+  box.appendChild(findCard);
+}
+
+// ------------------------------------------------------------ 主流程
+async function loadMetrics(){
+  const exp = document.getElementById('expSel').value;
+  const hint = document.getElementById('hint');
+  hint.textContent = '加载中...';
+
+  const r = await fetch('/api/metrics?exp=' + exp).then(r=>r.json());
+  if (!r.ok){
+    document.getElementById('reportArea').hidden = true;
+    document.getElementById('failCard').style.display = '';
+    hint.textContent = r.msg + '（可先查看其它实验，或等待训练完成）';
+    return;
+  }
+  document.getElementById('failCard').style.display = 'none';
+  document.getElementById('reportArea').hidden = false;
+
+  const d = r.data;
+  document.getElementById('metricsText').textContent = r.text;
+  renderKPI(d.summary);
+  renderPRChart(d.per_class);
+  renderRadar(d.per_class);
+  renderHeatmap(d.per_class.map(c=>c.class), d.confusion);
+  renderConclusion(d);
+}
+document.getElementById('expSel').addEventListener('change', loadMetrics);
+loadMetrics();
+</script>
+{% endblock %}

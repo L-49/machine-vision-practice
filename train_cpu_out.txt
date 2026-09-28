@@ -1,0 +1,35 @@
+﻿网络: mobilenet 参数量(M): 3.32
+训练批数=391, 测试批数=79
+checkpoint 目录: checkpoint\mobilenet\2026-09-21_10-24-03
+epoch 1 训练loss=4.2395 耗时=416.2s 测试Top-1精度=10.71%
+  -> 保存 best 权重 epoch 1 acc 10.71%
+python.exe : D:\新d盘\大学牲\23030127李思佳\大四上\机器视觉课程实践\机器视觉实践\pytorch-cifar100\train_cpu.py:63: UserWarning: The epoch parame
+ter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to st
+ep the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new c
+hainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/p
+ytorch/pytorch/issues/new/choose.
+所在位置 行:1 字符: 77
++ ... -cifar100"; & "D:\appdownload\python\python.exe" -X utf8 train_cpu.py ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\新d盘\大学牲\2303...ues/new/choose.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  train_scheduler.step(epoch)
+epoch 2 训练loss=3.6246 耗时=400.7s 测试Top-1精度=16.29%
+  -> 保存 best 权重 epoch 2 acc 16.29%
+epoch 3 训练loss=3.2951 耗时=404.8s 测试Top-1精度=20.51%
+  -> 保存 best 权重 epoch 3 acc 20.51%
+epoch 4 训练loss=3.0311 耗时=368.3s 测试Top-1精度=25.47%
+  -> 保存 best 权重 epoch 4 acc 25.47%
+epoch 5 训练loss=2.8224 耗时=407.0s 测试Top-1精度=28.36%
+  -> 保存 best 权重 epoch 5 acc 28.36%
+epoch 6 训练loss=2.6578 耗时=417.6s 测试Top-1精度=30.83%
+  -> 保存 best 权重 epoch 6 acc 30.83%
+epoch 7 训练loss=2.5325 耗时=312.9s 测试Top-1精度=33.22%
+  -> 保存 best 权重 epoch 7 acc 33.22%
+epoch 8 训练loss=2.4465 耗时=313.6s 测试Top-1精度=31.00%
+epoch 9 训练loss=2.3916 耗时=421.7s 测试Top-1精度=34.83%
+  -> 保存 best 权重 epoch 9 acc 34.83%
+epoch 10 训练loss=2.3533 耗时=442.7s 测试Top-1精度=36.27%
+  -> 保存 best 权重 epoch 10 acc 36.27%
+训练完成: 共 10 epoch, 最佳 Top-1 精度 36.27%, 单 epoch 平均耗时 489.4s

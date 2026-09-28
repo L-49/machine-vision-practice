@@ -1,4 +1,28 @@
-**/__pycache__
-data
-checkpoint
-runs
+# Python
+__pycache__/
+*.py[cod]
+
+# 数据集（CIFAR-10/100、MNIST 等，体积过大不入库）
+data/
+*.tar.gz
+
+# 模型权重、检查点与训练产物
+checkpoint/
+*.pth
+*.pt
+runs/
+
+# 训练 / Flask 运行日志、锁文件
+logs/
+*.log
+*.err
+*.lock
+
+# Web 运行时用户上传的图片
+web/uploads/
+
+# 系统/编辑器杂项
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

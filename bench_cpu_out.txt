@@ -1,0 +1,16 @@
+﻿CPU threads: 16
+网络: mobilenet 参数量(M): 3.32
+加载训练集...
+训练集加载完成, 耗时 6.6s, 批数=391
+测试集加载完成, 批数=79
+  epoch 1 batch 50/391 loss=4.5878 批次耗时均值=1.96s
+  epoch 1 batch 100/391 loss=4.5877 批次耗时均值=1.47s
+  epoch 1 batch 150/391 loss=4.1696 批次耗时均值=1.31s
+  epoch 1 batch 200/391 loss=4.1626 批次耗时均值=1.23s
+  epoch 1 batch 250/391 loss=3.9902 批次耗时均值=1.14s
+  epoch 1 batch 300/391 loss=3.9773 批次耗时均值=1.07s
+  epoch 1 batch 350/391 loss=4.0308 批次耗时均值=1.01s
+  epoch 1 batch 391/391 loss=3.8405 批次耗时均值=0.99s
+epoch 1 总耗时 387.1s, 平均每批 0.987s
+=> 按此速度, 200 epoch 预计需 21.5 小时
+epoch 1 测试集 Top-1 精度: 8.77%

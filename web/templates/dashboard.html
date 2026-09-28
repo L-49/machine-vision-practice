@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+{% block title %}训练仪表盘 · 机器视觉实践系统{% endblock %}
+{% block content %}
+<h1 class="page-title">训练仪表盘</h1>
+<p class="page-sub" id="pageSub">实时监控训练进度，数据每 60 秒自动刷新</p>
+
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-label">训练状态</div>
+    <div class="stat-value" id="stStatus"><span class="dot off"></span>检测中</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">已完成 Epoch</div>
+    <div class="stat-value" id="stEpoch">--</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">最佳 Top-1 精度</div>
+    <div class="stat-value" id="stBest">--<small> %</small></div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">最新训练 Loss</div>
+    <div class="stat-value" id="stLoss">--</div>
+  </div>
+</div>
+
+<div class="card" style="padding-bottom: 16px">
+  <div class="card-title">全部实验概况</div>
+  <!-- 柱形图 + 折线图 左右排布 -->
+  <div class="overview-grid">
+    <div class="overview-cell">
+      <div class="overview-title">Top-1 精度对比</div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="overviewChart"></canvas>
+      </div>
+    </div>
+    <div class="overview-cell">
+      <div class="overview-title">训练 Loss 曲线对比</div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="lossChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- 状态汇总小条 -->
+  <div id="expStatusRow" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:16px;border-top:1px dashed var(--border);"></div>
+</div>
+
+<!-- 历史训练曲线模块 -->
+<div class="card hist-card">
+  <div class="hist-head">
+    <div class="card-title">历史训练曲线</div>
+    <div class="hist-actions">
+      <span id="histBadges" class="hist-badges"></span>
+      <button id="histRefreshBtn" class="btn ghost" type="button">刷新</button>
+    </div>
+  </div>
+
+  <div id="histChartBox" class="hist-chart" style="display:none">
+    <div class="hist-chart-head">
+      <span id="histChartTitle" class="hist-chart-title">--</span>
+      <button id="histChartClose" class="mh-close" type="button" aria-label="关闭">×</button>
+    </div>
+    <div class="chart-box"><canvas id="histChart"></canvas></div>
+  </div>
+
+  <table class="hist-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>时间</th>
+        <th>实验</th>
+        <th>最佳 Top-1</th>
+        <th>最新 Loss</th>
+        <th>Epoch</th>
+        <th>lr</th>
+        <th>权重</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="histBody">
+      <tr><td colspan="9" style="color:#868e96">加载中...</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const EXP_NAME = {
+  cifar10_resnet18:     'CIFAR-10 · ResNet18',
+  cifar10_seresnet18:   'CIFAR-10 · SEResNet18（SE 注意力）',
+  cifar10_mobilenet:    'CIFAR-10 · MobileNet',
+  cifar100_mobilenet:   'CIFAR-100 · MobileNet（100 类）',
+};
+const SHORT_NAME = {
+  cifar10_resnet18: 'ResNet18',
+  cifar10_seresnet18: 'SEResNet18',
+  cifar10_mobilenet: 'MobileNet',
+  cifar100_mobilenet: 'MobileNet',
+};
+const DATASET = {
+  cifar10_resnet18: 'CIFAR-10',
+  cifar10_seresnet18: 'CIFAR-10',
+  cifar10_mobilenet: 'CIFAR-10',
+  cifar100_mobilenet: 'CIFAR-100',
+};
+const hasTop5 = (exp) => exp !== 'cifar100_mobilenet';
+
+let currentExp = 'cifar10_resnet18';
+
+// ---- 刷新 4 个 stat 卡片 ----
+// 检测到当前有训练任务时，自动跟随 lock 显示该实验，无需手动切换
+let lastLockExp = null;
+async function refreshProgress() {
+  const tr = await fetch('/api/trainings').then(r => r.json());
+  const lockExp = tr.lock && tr.lock.exp;
+  // 训练状态切换（无→有 或 有→无）时立即刷新概况卡片和柱形图
+  if (lockExp !== lastLockExp) {
+    lastLockExp = lockExp;
+    refreshTrainings();
+  }
+  if (lockExp) {
+    currentExp = lockExp;     // 自动跟随当前训练
+  } else {
+    currentExp = 'cifar10_resnet18';
+  }
+  const r = await fetch('/api/progress?exp=' + currentExp).then(r => r.json());
+  const rows = r.rows || [];
+
+  document.getElementById('stStatus').innerHTML =
+    (r.running ? '<span class="dot"></span>训练中' : '<span class="dot off"></span>已结束');
+  document.getElementById('stEpoch').textContent = rows.length || '0';
+  let best = 0;
+  rows.forEach(x => { if (x.top1 > best) best = x.top1; });
+  document.getElementById('stBest').innerHTML =
+    (rows.length ? best.toFixed(2) : '--') + '<small> %</small>';
+  document.getElementById('stLoss').textContent =
+    rows.length ? rows[rows.length - 1].loss.toFixed(4) : '--';
+}
+
+// ---- 全部实验概况：柱形图 + 折线图 + 状态小条 ----
+const EXP_COLORS = {
+  cifar10_resnet18:    '#7048e8',
+  cifar10_seresnet18:  '#94d82d',
+  cifar10_mobilenet:   '#ffa94d',
+  cifar100_mobilenet:  '#4dabf7',
+};
+
+let overviewChart = null;
+let lossChart = null;
+
+function initOverviewChart() {
+  if (overviewChart) return;
+  const ctx = document.getElementById('overviewChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, '#845ef7');
+  grad.addColorStop(1, '#5f3dc4');
+  overviewChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [{
+      label: '最佳 Top-1 精度',
+      data: [],
+      backgroundColor: grad,
+      borderColor: '#5f3dc4',
+      borderWidth: 1,
+      borderRadius: 8,
+      barPercentage: 0.55,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100,
+             title: { display: true, text: 'Top-1 精度 (%)' },
+             ticks: { callback: v => v + '%' } },
+        x: { ticks: { font: { size: 11 }, maxRotation: 0, minRotation: 0 } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => 'Top-1: ' + c.parsed.y.toFixed(2) + '%' } }
+      }
+    }
+  });
+}
+
+function initLossChart() {
+  if (lossChart) return;
+  lossChart = new Chart(document.getElementById('lossChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: { title: { display: true, text: '训练 Loss' } },
+        x: { title: { display: true, text: 'Epoch' } }
+      },
+      plugins: {
+        legend: { position: 'top', align: 'end' },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y.toFixed(4) } }
+      }
+    }
+  });
+}
+
+async function refreshTrainings() {
+  const r = await fetch('/api/trainings').then(r => r.json());
+  if (!r.items || !r.items.length) return;
+
+  // 1. 更新柱形图
+  initOverviewChart();
+  overviewChart.data.labels = r.items.map(it =>
+    `${SHORT_NAME[it.exp] || it.exp} (${DATASET[it.exp] || ''})`);
+  overviewChart.data.datasets[0].data =
+    r.items.map(it => Number((it.best_top1 || 0).toFixed(2)));
+  overviewChart.update();
+
+  // 2. 并发拉取 4 个实验的 rows，画 loss 折线对比
+  initLossChart();
+  const rowsPerExp = await Promise.all(r.items.map(it =>
+    fetch('/api/progress?exp=' + it.exp).then(x => x.json())
+      .then(j => ({ exp: it.exp, rows: j.rows || [] }))
+  ));
+  // epoch 标签取最长一个
+  const maxLen = Math.max(...rowsPerExp.map(x => x.rows.length));
+  lossChart.data.labels = Array.from({length: maxLen}, (_, i) => i + 1);
+  lossChart.data.datasets = rowsPerExp.map(x => ({
+    label: `${SHORT_NAME[x.exp]} (${DATASET[x.exp]})`,
+    data: x.rows.map(r => r.loss),
+    borderColor: EXP_COLORS[x.exp] || '#7048e8',
+    backgroundColor: EXP_COLORS[x.exp] || '#7048e8',
+    tension: 0.3, pointRadius: 1.5, borderWidth: 2,
+    spanGaps: true,
+  }));
+  lossChart.update();
+
+  // 3. 更新状态小条（紧凑信息：状态徽章 + 关键数字）
+  const row = document.getElementById('expStatusRow');
+  row.innerHTML = r.items.map(it => {
+    const st = it.active ? '<span class="badge run">训练中</span>'
+            : (it.epochs_done > 0 ? '<span class="badge stop">已完成</span>'
+                                  : '<span class="badge stop">未训练</span>');
+    const w = it.has_weight ? '✓权重' : '×权重';
+    return `
+    <div style="flex:1;min-width:200px;background:var(--p-bg);border-radius:10px;padding:10px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-weight:600;font-size:13px;color:var(--ink);">${SHORT_NAME[it.exp]} <span style="color:var(--gray);font-weight:400">/ ${DATASET[it.exp]}</span></span>
+        ${st}
+      </div>
+      <div style="display:flex;gap:14px;font-size:12px;color:var(--gray);">
+        <span>Top-1 <b style="color:var(--p1)">${it.best_top1 ? it.best_top1.toFixed(2) : '--'}%</b></span>
+        <span>Epoch <b style="color:var(--ink)">${it.epochs_done}/60</b></span>
+        <span>Loss <b style="color:var(--ink)">${it.last_loss != null ? it.last_loss.toFixed(4) : '--'}</b></span>
+        <span>${w}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+refreshProgress();
+refreshTrainings();
+setInterval(refreshProgress, 5000);    // 5 秒刷 stat 卡片，训练状态实时同步
+setInterval(refreshTrainings, 15000);  // 15 秒刷概况图（含 4 次 /api/progress，开销大）
+// 切回 dashboard 标签页时立即刷新
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { refreshProgress(); }
+});
+// 跨标签页：train.html 启动/停止训练时通知仪表盘立即刷新
+window.addEventListener('storage', (e) => {
+  if (e.key === 'trainingEvent') {
+    refreshProgress();
+    refreshTrainings();
+  }
+});
+
+// ---- 历史训练曲线 ----
+let histChart = null;
+let currentHistFile = null;
+
+function initHistChart() {
+  if (histChart) return;
+  histChart = new Chart(document.getElementById('histChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: '训练损失', data: [], yAxisID: 'y',
+        borderColor: '#7048e8', backgroundColor: '#7048e8',
+        tension: .25, pointRadius: 3 },
+      { label: 'Top-1 精度(%)', data: [], yAxisID: 'y1',
+        borderColor: '#94d82d', backgroundColor: '#94d82d',
+        tension: .25, pointRadius: 3 },
+      { label: 'Top-5 精度(%)', data: [], yAxisID: 'y1',
+        borderColor: '#ffa94d', backgroundColor: '#ffa94d',
+        tension: .25, pointRadius: 2, borderDash: [5,4] },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y:  { position: 'left',  title: { display: true, text: '损失' } },
+        y1: { position: 'right', title: { display: true, text: '精度 (%)' },
+              min: 0, max: 100, grid: { drawOnChartArea: false } }
+      },
+      plugins: { legend: { position: 'top', align: 'end' } }
+    }
+  });
+}
+
+async function refreshHistory() {
+  const r = await fetch('/api/history').then(r => r.json());
+  const items = r.items || [];
+  const totalRun = items.length;
+  const byExp = {};
+  items.forEach(it => { byExp[it.exp] = (byExp[it.exp] || 0) + 1; });
+  const best = items.reduce((m, it) => Math.max(m, it.best_top1 || 0), 0);
+  const expBadges = Object.keys(byExp).map(exp =>
+    `<span class="hist-badge">${EXP_NAME[exp] || exp} × ${byExp[exp]}</span>`
+  ).join('');
+  document.getElementById('histBadges').innerHTML =
+    `<span class="hist-badge m-total">共 ${totalRun} 次训练</span>` +
+    `<span class="hist-badge m-best">历史最佳 Top-1 ${best.toFixed(2)}%</span>` +
+    expBadges;
+
+  const body = document.getElementById('histBody');
+  if (!items.length) {
+    body.innerHTML = '<tr><td colspan="9" style="color:#868e96">暂无历史训练记录</td></tr>';
+    return;
+  }
+  body.innerHTML = items.map((it, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>${it.time || '--'}</td>
+      <td>${it.exp_name}</td>
+      <td>${it.best_top1 ? it.best_top1.toFixed(2) + '%' : '-'}</td>
+      <td>${it.last_loss != null ? it.last_loss.toFixed(4) : '-'}</td>
+      <td>${it.last_epoch}${it.total_epochs ? '/' + it.total_epochs : ''}${it.done ? ' ✓' : ''}</td>
+      <td>${it.last_lr ?? '--'}</td>
+      <td>${it.has_weight ? '<span class="badge run">有</span>' : '<span class="badge stop">无</span>'}</td>
+      <td class="ops-cell">
+        <button class="link-btn" data-act="view" data-file="${it.file}">查看曲线</button>
+        <button class="link-btn" data-act="dl" data-file="${it.file}" ${it.has_weight ? '' : 'disabled'}>下载权重</button>
+        <button class="link-btn danger" data-act="del" data-file="${it.file}">删除</button>
+      </td>
+    </tr>`).join('');
+  body.querySelectorAll('.link-btn').forEach(b => {
+    b.addEventListener('click', (e) => {
+      const act = e.currentTarget.dataset.act;
+      const file = e.currentTarget.dataset.file;
+      if (act === 'view') viewHistoryChart(file);
+      else if (act === 'dl') downloadWeight(file);
+      else if (act === 'del') deleteHistory(file);
+    });
+  });
+}
+
+async function viewHistoryChart(file) {
+  const r = await fetch('/api/history_progress?file=' + encodeURIComponent(file)).then(r => r.json());
+  if (!r.ok) { alert(r.msg); return; }
+  document.getElementById('histChartBox').style.display = 'block';
+  document.getElementById('histChartTitle').textContent =
+    `${r.exp_name} · ${r.time} · 最佳 Top-1 ${r.best_top1.toFixed(2)}%`;
+  initHistChart();
+  histChart.data.labels = r.rows.map(x => x.epoch);
+  histChart.data.datasets[0].data = r.rows.map(x => x.loss);
+  histChart.data.datasets[1].data = r.rows.map(x => x.top1);
+  histChart.data.datasets[2].data = r.rows.map(x => x.top5 ?? null);
+  histChart.data.datasets[2].hidden = !r.has_top5;
+  histChart.update();
+  currentHistFile = file;
+  document.getElementById('histChartBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function downloadWeight(file) {
+  window.location.href = '/api/history_download?file=' + encodeURIComponent(file);
+}
+
+async function deleteHistory(file) {
+  if (!confirm('确认删除该次训练的日志文件？此操作不可恢复。')) return;
+  const fd = new FormData(); fd.append('file', file);
+  const r = await fetch('/api/history_delete', { method: 'POST', body: fd }).then(r => r.json());
+  if (r.ok) {
+    if (currentHistFile === file) {
+      document.getElementById('histChartBox').style.display = 'none';
+      currentHistFile = null;
+    }
+    refreshHistory();
+  } else alert(r.msg);
+}
+
+document.getElementById('histRefreshBtn').addEventListener('click', refreshHistory);
+document.getElementById('histChartClose').addEventListener('click', () => {
+  document.getElementById('histChartBox').style.display = 'none';
+  currentHistFile = null;
+});
+
+refreshHistory();
+setInterval(refreshHistory, 60000);
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}在线推理 · 机器视觉实践系统{% endblock %}
+{% block content %}
+<h1 class="page-title">在线推理</h1>
+<p class="page-sub">点击左侧样本库任一张立即推理，或右侧上传自己的图片；样本每次随机抽取避免过拟合嫌疑</p>
+
+<div class="predict-layout">
+  <!-- 左侧：样本库 -->
+  <div class="card predict-left">
+    <div class="predict-left-head">
+      <div>
+        <div class="card-title" style="margin:0">样本库快捷导入</div>
+        <div style="font-size:12px;color:#868e96;margin-top:2px">
+          池 <b id="poolTotal">-</b> 张 · 当前显示 <b id="sampleTotal">-</b> 张
+        </div>
+      </div>
+      <button id="reshuffleBtn" class="btn-mini">换一批</button>
+    </div>
+    <div id="sampleGroups" class="sample-groups">加载中...</div>
+  </div>
+
+  <!-- 右侧：上传 + 结果 -->
+  <div class="card predict-right">
+    <div class="card-title">上传图片</div>
+    <div class="upload-zone" id="zone">
+      <div class="big">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+      </div>
+      <div>点击选择图片，或将图片拖拽到此处</div>
+      <div style="font-size:12px;margin-top:8px">支持 PNG / JPG，建议使用 CIFAR-10 风格的 32×32 小图</div>
+      <input type="file" id="file" accept="image/*" hidden>
+    </div>
+    <div id="msg" class="msg"></div>
+
+    <div class="pred-box" id="result" style="display:none">
+      <img class="pred-img" id="resImg" src="" alt="上传图片">
+      <div style="flex:1">
+        <div style="margin-bottom:16px;font-size:14px;color:#868e96">
+          使用模型：<b id="resNet" style="color:#7048e8"></b> ·
+          推理耗时 <b id="resTime"></b> ms（要求 &lt; 1000ms）
+        </div>
+        <div id="confList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.predict-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.3fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .predict-layout { grid-template-columns: 1fr; }
+}
+.predict-left {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  position: sticky;
+  top: 16px;
+}
+.predict-left-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.btn-mini {
+  background: linear-gradient(135deg, #5f3dc4, #845ef7);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s, transform .15s;
+}
+.btn-mini:hover { opacity: .9; transform: translateY(-1px); }
+.btn-mini:disabled { opacity: .5; cursor: not-allowed; }
+.sample-groups { display: flex; flex-direction: column; gap: 14px; }
+.sample-row-title {
+  font-size: 13px;
+  color: #5f3dc4;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-transform: capitalize;
+}
+.sample-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.sample-grid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  image-rendering: pixelated;
+  transition: transform .15s, border-color .15s;
+}
+.sample-grid img:hover {
+  transform: scale(1.12);
+  border-color: #845ef7;
+  z-index: 1;
+}
+.sample-grid img.active {
+  border-color: #5f3dc4;
+  box-shadow: 0 0 0 2px rgba(95,61,196,.3);
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const zone = document.getElementById('zone');
+const fileInput = document.getElementById('file');
+const msg = document.getElementById('msg');
+const reshuffleBtn = document.getElementById('reshuffleBtn');
+
+zone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) upload(fileInput.files[0]);
+});
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]);
+});
+reshuffleBtn.addEventListener('click', () => { loadSamples(); });
+
+function show(cls, text) {
+  msg.className = 'msg ' + cls;
+  msg.textContent = text;
+}
+
+function renderResult(r) {
+  show('ok', '识别完成');
+  document.getElementById('result').style.display = 'flex';
+  document.getElementById('resImg').src = r.img;
+  document.getElementById('resNet').textContent = r.net;
+  document.getElementById('resTime').textContent = r.infer_ms;
+  document.getElementById('confList').innerHTML = r.preds.map((p, i) => `
+    <div class="conf-row">
+      <div class="conf-head">
+        <span><b>${i + 1}. ${p.cls}</b></span><span>${p.conf}%</span>
+      </div>
+      <div class="conf-bar"><div class="conf-fill" style="width:${p.conf}%"></div></div>
+    </div>`).join('');
+}
+
+async function upload(file) {
+  show('info', '推理中，请稍候...');
+  document.getElementById('result').style.display = 'none';
+  const fd = new FormData();
+  fd.append('image', file);
+  const r = await fetch('/api/predict', { method: 'POST', body: fd }).then(r => r.json());
+  if (!r.ok) { show('err', r.msg); return; }
+  renderResult(r);
+}
+
+async function predictSample(fileName, imgEl) {
+  show('info', '推理中（样本: ' + fileName + '）...');
+  document.getElementById('result').style.display = 'none';
+  document.querySelectorAll('.sample-grid img').forEach(i => i.classList.remove('active'));
+  if (imgEl) imgEl.classList.add('active');
+  const fd = new FormData();
+  fd.append('sample', fileName);
+  const r = await fetch('/api/predict', { method: 'POST', body: fd }).then(r => r.json());
+  if (!r.ok) { show('err', r.msg); return; }
+  renderResult(r);
+}
+
+async function loadSamples() {
+  reshuffleBtn.disabled = true;
+  reshuffleBtn.textContent = '加载中...';
+  const r = await fetch('/api/samples').then(r => r.json());
+  reshuffleBtn.disabled = false;
+  reshuffleBtn.textContent = '换一批';
+  if (!r.ok) {
+    document.getElementById('sampleGroups').innerHTML = '<div style="color:#e5994b">' + r.msg + '</div>';
+    return;
+  }
+  document.getElementById('sampleTotal').textContent = r.total;
+  document.getElementById('poolTotal').textContent = r.pool_total;
+  const groupsEl = document.getElementById('sampleGroups');
+  groupsEl.innerHTML = '';
+  const sortedKeys = Object.keys(r.groups).sort();
+  for (const cls of sortedKeys) {
+    const items = r.groups[cls];
+    const row = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'sample-row-title';
+    title.textContent = cls + '（' + items.length + '）';
+    row.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'sample-grid';
+    for (const it of items) {
+      const img = document.createElement('img');
+      img.src = '/static/samples/' + it.file;
+      img.alt = it.cls;
+      img.title = it.cls + ' · 点击推理';
+      img.onclick = () => predictSample(it.file, img);
+      grid.appendChild(img);
+    }
+    row.appendChild(grid);
+    groupsEl.appendChild(row);
+  }
+}
+
+loadSamples();
+</script>
+{% endblock %}

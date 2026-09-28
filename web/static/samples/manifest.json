@@ -1,0 +1,1002 @@
+[
+  {
+    "cls": "airplane",
+    "idx": 0,
+    "file": "airplane_00.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 1,
+    "file": "airplane_01.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 2,
+    "file": "airplane_02.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 3,
+    "file": "airplane_03.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 4,
+    "file": "airplane_04.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 5,
+    "file": "airplane_05.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 6,
+    "file": "airplane_06.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 7,
+    "file": "airplane_07.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 8,
+    "file": "airplane_08.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 9,
+    "file": "airplane_09.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 10,
+    "file": "airplane_10.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 11,
+    "file": "airplane_11.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 12,
+    "file": "airplane_12.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 13,
+    "file": "airplane_13.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 14,
+    "file": "airplane_14.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 15,
+    "file": "airplane_15.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 16,
+    "file": "airplane_16.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 17,
+    "file": "airplane_17.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 18,
+    "file": "airplane_18.png"
+  },
+  {
+    "cls": "airplane",
+    "idx": 19,
+    "file": "airplane_19.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 0,
+    "file": "automobile_00.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 1,
+    "file": "automobile_01.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 2,
+    "file": "automobile_02.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 3,
+    "file": "automobile_03.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 4,
+    "file": "automobile_04.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 5,
+    "file": "automobile_05.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 6,
+    "file": "automobile_06.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 7,
+    "file": "automobile_07.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 8,
+    "file": "automobile_08.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 9,
+    "file": "automobile_09.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 10,
+    "file": "automobile_10.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 11,
+    "file": "automobile_11.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 12,
+    "file": "automobile_12.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 13,
+    "file": "automobile_13.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 14,
+    "file": "automobile_14.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 15,
+    "file": "automobile_15.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 16,
+    "file": "automobile_16.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 17,
+    "file": "automobile_17.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 18,
+    "file": "automobile_18.png"
+  },
+  {
+    "cls": "automobile",
+    "idx": 19,
+    "file": "automobile_19.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 0,
+    "file": "bird_00.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 1,
+    "file": "bird_01.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 2,
+    "file": "bird_02.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 3,
+    "file": "bird_03.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 4,
+    "file": "bird_04.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 5,
+    "file": "bird_05.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 6,
+    "file": "bird_06.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 7,
+    "file": "bird_07.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 8,
+    "file": "bird_08.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 9,
+    "file": "bird_09.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 10,
+    "file": "bird_10.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 11,
+    "file": "bird_11.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 12,
+    "file": "bird_12.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 13,
+    "file": "bird_13.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 14,
+    "file": "bird_14.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 15,
+    "file": "bird_15.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 16,
+    "file": "bird_16.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 17,
+    "file": "bird_17.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 18,
+    "file": "bird_18.png"
+  },
+  {
+    "cls": "bird",
+    "idx": 19,
+    "file": "bird_19.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 0,
+    "file": "cat_00.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 1,
+    "file": "cat_01.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 2,
+    "file": "cat_02.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 3,
+    "file": "cat_03.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 4,
+    "file": "cat_04.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 5,
+    "file": "cat_05.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 6,
+    "file": "cat_06.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 7,
+    "file": "cat_07.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 8,
+    "file": "cat_08.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 9,
+    "file": "cat_09.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 10,
+    "file": "cat_10.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 11,
+    "file": "cat_11.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 12,
+    "file": "cat_12.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 13,
+    "file": "cat_13.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 14,
+    "file": "cat_14.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 15,
+    "file": "cat_15.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 16,
+    "file": "cat_16.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 17,
+    "file": "cat_17.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 18,
+    "file": "cat_18.png"
+  },
+  {
+    "cls": "cat",
+    "idx": 19,
+    "file": "cat_19.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 0,
+    "file": "deer_00.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 1,
+    "file": "deer_01.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 2,
+    "file": "deer_02.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 3,
+    "file": "deer_03.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 4,
+    "file": "deer_04.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 5,
+    "file": "deer_05.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 6,
+    "file": "deer_06.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 7,
+    "file": "deer_07.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 8,
+    "file": "deer_08.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 9,
+    "file": "deer_09.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 10,
+    "file": "deer_10.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 11,
+    "file": "deer_11.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 12,
+    "file": "deer_12.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 13,
+    "file": "deer_13.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 14,
+    "file": "deer_14.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 15,
+    "file": "deer_15.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 16,
+    "file": "deer_16.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 17,
+    "file": "deer_17.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 18,
+    "file": "deer_18.png"
+  },
+  {
+    "cls": "deer",
+    "idx": 19,
+    "file": "deer_19.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 0,
+    "file": "dog_00.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 1,
+    "file": "dog_01.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 2,
+    "file": "dog_02.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 3,
+    "file": "dog_03.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 4,
+    "file": "dog_04.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 5,
+    "file": "dog_05.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 6,
+    "file": "dog_06.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 7,
+    "file": "dog_07.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 8,
+    "file": "dog_08.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 9,
+    "file": "dog_09.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 10,
+    "file": "dog_10.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 11,
+    "file": "dog_11.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 12,
+    "file": "dog_12.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 13,
+    "file": "dog_13.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 14,
+    "file": "dog_14.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 15,
+    "file": "dog_15.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 16,
+    "file": "dog_16.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 17,
+    "file": "dog_17.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 18,
+    "file": "dog_18.png"
+  },
+  {
+    "cls": "dog",
+    "idx": 19,
+    "file": "dog_19.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 0,
+    "file": "frog_00.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 1,
+    "file": "frog_01.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 2,
+    "file": "frog_02.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 3,
+    "file": "frog_03.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 4,
+    "file": "frog_04.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 5,
+    "file": "frog_05.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 6,
+    "file": "frog_06.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 7,
+    "file": "frog_07.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 8,
+    "file": "frog_08.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 9,
+    "file": "frog_09.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 10,
+    "file": "frog_10.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 11,
+    "file": "frog_11.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 12,
+    "file": "frog_12.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 13,
+    "file": "frog_13.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 14,
+    "file": "frog_14.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 15,
+    "file": "frog_15.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 16,
+    "file": "frog_16.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 17,
+    "file": "frog_17.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 18,
+    "file": "frog_18.png"
+  },
+  {
+    "cls": "frog",
+    "idx": 19,
+    "file": "frog_19.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 0,
+    "file": "horse_00.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 1,
+    "file": "horse_01.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 2,
+    "file": "horse_02.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 3,
+    "file": "horse_03.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 4,
+    "file": "horse_04.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 5,
+    "file": "horse_05.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 6,
+    "file": "horse_06.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 7,
+    "file": "horse_07.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 8,
+    "file": "horse_08.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 9,
+    "file": "horse_09.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 10,
+    "file": "horse_10.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 11,
+    "file": "horse_11.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 12,
+    "file": "horse_12.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 13,
+    "file": "horse_13.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 14,
+    "file": "horse_14.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 15,
+    "file": "horse_15.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 16,
+    "file": "horse_16.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 17,
+    "file": "horse_17.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 18,
+    "file": "horse_18.png"
+  },
+  {
+    "cls": "horse",
+    "idx": 19,
+    "file": "horse_19.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 0,
+    "file": "ship_00.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 1,
+    "file": "ship_01.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 2,
+    "file": "ship_02.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 3,
+    "file": "ship_03.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 4,
+    "file": "ship_04.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 5,
+    "file": "ship_05.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 6,
+    "file": "ship_06.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 7,
+    "file": "ship_07.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 8,
+    "file": "ship_08.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 9,
+    "file": "ship_09.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 10,
+    "file": "ship_10.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 11,
+    "file": "ship_11.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 12,
+    "file": "ship_12.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 13,
+    "file": "ship_13.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 14,
+    "file": "ship_14.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 15,
+    "file": "ship_15.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 16,
+    "file": "ship_16.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 17,
+    "file": "ship_17.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 18,
+    "file": "ship_18.png"
+  },
+  {
+    "cls": "ship",
+    "idx": 19,
+    "file": "ship_19.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 0,
+    "file": "truck_00.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 1,
+    "file": "truck_01.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 2,
+    "file": "truck_02.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 3,
+    "file": "truck_03.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 4,
+    "file": "truck_04.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 5,
+    "file": "truck_05.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 6,
+    "file": "truck_06.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 7,
+    "file": "truck_07.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 8,
+    "file": "truck_08.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 9,
+    "file": "truck_09.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 10,
+    "file": "truck_10.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 11,
+    "file": "truck_11.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 12,
+    "file": "truck_12.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 13,
+    "file": "truck_13.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 14,
+    "file": "truck_14.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 15,
+    "file": "truck_15.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 16,
+    "file": "truck_16.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 17,
+    "file": "truck_17.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 18,
+    "file": "truck_18.png"
+  },
+  {
+    "cls": "truck",
+    "idx": 19,
+    "file": "truck_19.png"
+  }
+]
