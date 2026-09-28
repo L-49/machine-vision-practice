@@ -1,184 +1,135 @@
-# Pytorch-cifar100
+# 机器视觉课程实践：CIFAR / MNIST 图像分类实验系统
 
-practice on cifar100 using pytorch
+本项目在 [weiaicunzai/pytorch-cifar100](https://github.com/weiaicunzai/pytorch-cifar100) 开源框架基础上，
+面向机器视觉课程实践完成二次开发，实现 **CPU 端可复现的图像分类训练 + Web 可视化实验平台**。
 
-## Requirements
+## 项目目标
 
-This is my experiment eviroument
-- python3.6
-- pytorch1.6.0+cu101
-- tensorboard 2.2.2(optional)
+- 在无 GPU 的教学环境下，完成 CIFAR-10 / CIFAR-100 / MNIST 的模型训练与精度对比
+- 通过 SE 注意力机制（SE-ResNet18）等结构差异实验，分析模型容量与数据集复杂度的匹配关系
+- 提供可视化 Web 界面，支持在线调参、实时训练曲线、实验对比和单图预测
 
+## 数据集
 
-## Usage
+| 数据集 | 类别数 | 训练集 | 测试集 | 用途 |
+| :----: | :----: | :----: | :----: | :--- |
+| CIFAR-10 | 10 | 50000 | 10000 | 基础分类（ResNet18、MobileNet） |
+| CIFAR-100 | 100 | 50000 | 10000 | 难度对比（MobileNet） |
+| MNIST | 10 | 60000 | 10000 | 入门验证（LeNet） |
 
-### 1. enter directory
+数据集压缩包因体积较大未纳入仓库，可从以下地址获取并放到项目根目录，由脚本自动解压：
+
+- CIFAR-10: `https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz`
+- CIFAR-100: `https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz`
+- MNIST 由 `torchvision.datasets.MNIST` 自动下载
+
+## 实验模型
+
+- **ResNet18**：CIFAR-10 主干模型，60 epoch，目标 Top-1 ≥ 90%
+- **SE-ResNet18**：在 ResNet18 基础上加入 Squeeze-and-Excitation 注意力，用于对比实验
+- **MobileNet**（3.3M 参数）：CIFAR-100 轻量模型，CPU 端可达约 65% Top-1
+- **LeNet**：MNIST 入门模型
+
+## 功能模块
+
+### 训练脚本
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `train_cifar10_cpu.py` | CIFAR-10 的 ResNet18 / SE-ResNet18 / MobileNet CPU 训练，支持断点续训 |
+| `mnist_lenet.py` | MNIST LeNet 训练 |
+| `train.py` / `train_cpu.py` | 原框架的多模型通用训练脚本 |
+| `bench_cpu.py` | CPU 推理基准测试 |
+| `lr_finder.py` | 学习率查找 |
+
+### 自动化脚本
+
+| 文件 | 说明 |
+| :--- | :--- |
+| `auto_train_cifar10.ps1` | CIFAR-10 多实验串联自动训练 |
+| `auto_chain_mobilenet.ps1` | MobileNet 多实验串联训练 |
+| `monitor_chain.ps1` | 串联训练进程监控 |
+
+### Web 可视化系统（`web/`）
+
+基于 Flask + Chart.js，紫色渐变 UI，提供以下页面：
+
+- **在线调参（train）**：选择模型/数据集/学习率等超参数，实时训练曲线（loss、Top-1、Top-5），每 5 秒轮询刷新
+- **实验仪表盘（dashboard）**：全部实验概况，Top-1 精度对比柱形图 + 训练 Loss 曲线对比折线图，左右布局，窄屏自动堆叠
+- **模型评估报告（evaluate）**：混淆矩阵 + 综合评估结论，宽屏左右排版
+- **在线预测（predict）**：上传图片即时识别
+
+后端 API 包括训练启动、进度查询、历史训练记录、权重下载、日志删除等。
+
+## 项目结构
+
+```
+pytorch-cifar100/
+├── conf/                  # 全局超参数配置
+├── models/                # 各网络结构实现（resnet, mobilenet, senet 等）
+├── web/                   # Flask Web 可视化系统
+│   ├── app.py             # 后端入口
+│   ├── static/            # CSS / JS / 样例图片
+│   └── templates/         # HTML 页面
+├── train_cifar10_cpu.py   # CIFAR-10 CPU 训练主脚本
+├── mnist_lenet.py         # MNIST 训练
+├── bench_cpu.py           # CPU 基准测试
+├── lr_finder.py           # 学习率查找
+├── auto_*.ps1             # 自动训练脚本
+└── dataset.py / utils.py  # 数据加载与工具函数
+```
+
+> `data/`、`checkpoint/`、`logs/`、`web/uploads/` 等运行时产物已通过 `.gitignore` 排除，
+> 需自行下载数据集并训练生成权重。
+
+## 运行环境
+
+- Python 3.6+
+- PyTorch 1.6.0+（CPU 版即可）
+- Flask
+- Chart.js（已内置在 `web/static/js/`）
+
+## 快速开始
+
+### 1. 安装依赖
+
 ```bash
-$ cd pytorch-cifar100
+pip install torch torchvision flask
 ```
 
-### 2. dataset
-I will use cifar100 dataset from torchvision since it's more convenient, but I also
-kept the sample code for writing your own dataset module in dataset folder, as an
-example for people don't know how to write it.
-
-### 3. run tensorbard(optional)
-Install tensorboard
-```bash
-$ pip install tensorboard
-$ mkdir runs
-Run tensorboard
-$ tensorboard --logdir='runs' --port=6006 --host='localhost'
-```
-
-### 4. train the model
-You need to specify the net you want to train using arg -net
+### 2. 启动训练
 
 ```bash
-# use gpu to train vgg16
-$ python train.py -net vgg16 -gpu
+# CIFAR-10 ResNet18，60 epoch
+python train_cifar10_cpu.py -net resnet18 -epoch 60
+
+# MNIST LeNet
+python mnist_lenet.py
 ```
 
-sometimes, you might want to use warmup training by set ```-warm``` to 1 or 2, to prevent network
-diverge during early training phase.
+### 3. 启动 Web 系统
 
-The supported net args are:
-```
-squeezenet
-mobilenet
-mobilenetv2
-shufflenet
-shufflenetv2
-vgg11
-vgg13
-vgg16
-vgg19
-densenet121
-densenet161
-densenet201
-googlenet
-inceptionv3
-inceptionv4
-inceptionresnetv2
-xception
-resnet18
-resnet34
-resnet50
-resnet101
-resnet152
-preactresnet18
-preactresnet34
-preactresnet50
-preactresnet101
-preactresnet152
-resnext50
-resnext101
-resnext152
-attention56
-attention92
-seresnet18
-seresnet34
-seresnet50
-seresnet101
-seresnet152
-nasnet
-wideresnet
-stochasticdepth18
-stochasticdepth34
-stochasticdepth50
-stochasticdepth101
-```
-Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
-
-
-### 5. test the model
-Test the model using test.py
 ```bash
-$ python test.py -net vgg16 -weights path_to_vgg16_weights_file
+cd web
+python app.py
+# 浏览器访问 http://127.0.0.1:5000
 ```
 
-## Implementated NetWork
+## 协作规范（Fork + Pull Request）
 
-- vgg [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556v6)
-- googlenet [Going Deeper with Convolutions](https://arxiv.org/abs/1409.4842v1)
-- inceptionv3 [Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567v3)
-- inceptionv4, inception_resnet_v2 [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
-- xception [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/abs/1610.02357)
-- resnet [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385v1)
-- resnext [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/abs/1611.05431v2)
-- resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
-- densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
-- shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
-- shufflenetv2 [ShuffleNet V2: Practical Guidelines for Efficient CNN Architecture Design](https://arxiv.org/abs/1807.11164v1)
-- mobilenet [MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications](https://arxiv.org/abs/1704.04861)
-- mobilenetv2 [MobileNetV2: Inverted Residuals and Linear Bottlenecks](https://arxiv.org/abs/1801.04381)
-- residual attention network [Residual Attention Network for Image Classification](https://arxiv.org/abs/1704.06904)
-- senet [Squeeze-and-Excitation Networks](https://arxiv.org/abs/1709.01507)
-- squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
-- nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
-- wide residual network[Wide Residual Networks](https://arxiv.org/abs/1605.07146)
-- stochastic depth networks[Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
+本仓库采用 **Fork + PR** 工作流，主干由维护者审核合并，确保贡献可追溯：
 
-## Training Details
-I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
-please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_for_Image_Classification_with_Convolutional_Neural_Networks), contains
-various common training tricks and their pytorch implementations.
+1. **Fork 仓库**：在 GitHub 页面点击 Fork，将仓库复制到自己账号
+2. **克隆 Fork**：`git clone https://github.com/<你的用户名>/machine-vision-practice.git`
+3. **新建分支**：`git checkout -b feat/<功能名>`
+4. **提交改动**：`git add -A && git commit -m "feat: 简要描述"`
+5. **推送分支**：`git push origin feat/<功能名>`
+6. **发起 PR**：在 GitHub 上从你的分支向 `L-49/machine-vision-practice` 的 `main` 分支发起 Pull Request
+7. **审核合并**：维护者审核通过后合并，合并后分支自动删除
 
+提交信息建议遵循 Conventional Commits 规范：`feat:` / `fix:` / `docs:` / `refactor:` 等。
 
-I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1708.04552v2), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
-epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548v1) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1708.04896v2), which is initial lr = 0.1, lr divied by 10 at 150th and 225th epochs, and training for 300 epochs with batchsize 128, this is more commonly used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
+## 许可
 
-You can choose whether to use TensorBoard to visualize your training procedure
-
-## Results
-The result I can get from a certain model, since I use the same hyperparameters to train all the networks, some networks might not get the best result from these hyperparameters, you could try yourself by finetuning the hyperparameters to get
-better result.
-
-|dataset|network|params|top1 err|top5 err|epoch(lr = 0.1)|epoch(lr = 0.02)|epoch(lr = 0.004)|epoch(lr = 0.0008)|total epoch|
-|:-----:|:-----:|:----:|:------:|:------:|:-------------:|:--------------:|:---------------:|:----------------:|:---------:|
-|cifar100|mobilenet|3.3M|34.02|10.56|60|60|40|40|200|
-|cifar100|mobilenetv2|2.36M|31.92|09.02|60|60|40|40|200|
-|cifar100|squeezenet|0.78M|30.59|8.36|60|60|40|40|200|
-|cifar100|shufflenet|1.0M|29.94|8.35|60|60|40|40|200|
-|cifar100|shufflenetv2|1.3M|30.49|8.49|60|60|40|40|200|
-|cifar100|vgg11_bn|28.5M|31.36|11.85|60|60|40|40|200|
-|cifar100|vgg13_bn|28.7M|28.00|9.71|60|60|40|40|200|
-|cifar100|vgg16_bn|34.0M|27.07|8.84|60|60|40|40|200|
-|cifar100|vgg19_bn|39.0M|27.77|8.84|60|60|40|40|200|
-|cifar100|resnet18|11.2M|24.39|6.95|60|60|40|40|200|
-|cifar100|resnet34|21.3M|23.24|6.63|60|60|40|40|200|
-|cifar100|resnet50|23.7M|22.61|6.04|60|60|40|40|200|
-|cifar100|resnet101|42.7M|22.22|5.61|60|60|40|40|200|
-|cifar100|resnet152|58.3M|22.31|5.81|60|60|40|40|200|
-|cifar100|preactresnet18|11.3M|27.08|8.53|60|60|40|40|200|
-|cifar100|preactresnet34|21.5M|24.79|7.68|60|60|40|40|200|
-|cifar100|preactresnet50|23.9M|25.73|8.15|60|60|40|40|200|
-|cifar100|preactresnet101|42.9M|24.84|7.83|60|60|40|40|200|
-|cifar100|preactresnet152|58.6M|22.71|6.62|60|60|40|40|200|
-|cifar100|resnext50|14.8M|22.23|6.00|60|60|40|40|200|
-|cifar100|resnext101|25.3M|22.22|5.99|60|60|40|40|200|
-|cifar100|resnext152|33.3M|22.40|5.58|60|60|40|40|200|
-|cifar100|attention59|55.7M|33.75|12.90|60|60|40|40|200|
-|cifar100|attention92|102.5M|36.52|11.47|60|60|40|40|200|
-|cifar100|densenet121|7.0M|22.99|6.45|60|60|40|40|200|
-|cifar100|densenet161|26M|21.56|6.04|60|60|60|40|200|
-|cifar100|densenet201|18M|21.46|5.9|60|60|40|40|200|
-|cifar100|googlenet|6.2M|21.97|5.94|60|60|40|40|200|
-|cifar100|inceptionv3|22.3M|22.81|6.39|60|60|40|40|200|
-|cifar100|inceptionv4|41.3M|24.14|6.90|60|60|40|40|200|
-|cifar100|inceptionresnetv2|65.4M|27.51|9.11|60|60|40|40|200|
-|cifar100|xception|21.0M|25.07|7.32|60|60|40|40|200|
-|cifar100|seresnet18|11.4M|23.56|6.68|60|60|40|40|200|
-|cifar100|seresnet34|21.6M|22.07|6.12|60|60|40|40|200|
-|cifar100|seresnet50|26.5M|21.42|5.58|60|60|40|40|200|
-|cifar100|seresnet101|47.7M|20.98|5.41|60|60|40|40|200|
-|cifar100|seresnet152|66.2M|20.66|5.19|60|60|40|40|200|
-|cifar100|nasnet|5.2M|22.71|5.91|60|60|40|40|200|
-|cifar100|wideresnet-40-10|55.9M|21.25|5.77|60|60|40|40|200|
-|cifar100|stochasticdepth18|11.22M|31.40|8.84|60|60|40|40|200|
-|cifar100|stochasticdepth34|21.36M|27.72|7.32|60|60|40|40|200|
-|cifar100|stochasticdepth50|23.71M|23.35|5.76|60|60|40|40|200|
-|cifar100|stochasticdepth101|42.69M|21.28|5.39|60|60|40|40|200|
-
-
-
+基于 [weiaicunzai/pytorch-cifar100](https://github.com/weiaicunzai/pytorch-cifar100) 二次开发，
+保留原项目许可协议。
